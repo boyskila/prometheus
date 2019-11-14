@@ -23,23 +23,22 @@ const filterByHealth = ({ upCount, targets }: ScrapePool, { showHealthy, showUnh
 };
 
 const ScrapePoolList: FC<ScrapePoolListProps & PathPrefixProps> = ({ filter, pathPrefix }) => {
-  const { response, error } = useFetch<TargetsResponse>(`${pathPrefix}/api/v1/targets?state=active`);
-
+  const { data, status, error } = useFetch<TargetsResponse>(`${pathPrefix}/api/v1/targets?state=active`);
+  
   if (error) {
     return (
       <Alert color="danger">
         <strong>Error fetching targets:</strong> {error.message}
       </Alert>
     );
-  } else if (response && response.status !== 'success' && response.status !== 'start fetching') {
+  } else if (status && status !== 'success') {
     return (
       <Alert color="danger">
-        <strong>Error fetching targets:</strong> {response.status}
+        <strong>Error fetching targets:</strong> {status}
       </Alert>
     );
-  } else if (response && response.data) {
-    const { activeTargets } = response.data;
-    const targetGroups = groupTargets(activeTargets);
+  } else if (data) {
+    const targetGroups = groupTargets(data.activeTargets);
     return (
       <>
         {Object.keys(targetGroups)

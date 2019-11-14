@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 
-export type APIResponse<T> = { status: string; data?: T };
+export type APIResponse<T> = { status?: string; data?: T };
 
 export interface FetchState<T> {
-  response: APIResponse<T>;
+  data?: T;
+  status?: string;
   error?: Error;
   isLoading: boolean;
 }
 
+const initialResponseState: APIResponse<any> = { status: undefined, data: undefined };
+
 export const useFetch = <T extends {}>(url: string, options?: RequestInit): FetchState<T> => {
-  const [response, setResponse] = useState<APIResponse<T>>({ status: 'start fetching' });
+  const [response, setResponse] = useState<APIResponse<T>>(initialResponseState);
   const [error, setError] = useState<Error>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -22,7 +25,7 @@ export const useFetch = <T extends {}>(url: string, options?: RequestInit): Fetc
           throw new Error(res.statusText);
         }
         const json = (await res.json()) as APIResponse<T>;
-        setResponse(json);
+        setResponse(json || initialResponseState);
         setIsLoading(false);
       } catch (error) {
         setError(error);
@@ -30,5 +33,5 @@ export const useFetch = <T extends {}>(url: string, options?: RequestInit): Fetc
     };
     fetchData();
   }, [url, options]);
-  return { response, error, isLoading };
+  return { ...response, error, isLoading };
 };

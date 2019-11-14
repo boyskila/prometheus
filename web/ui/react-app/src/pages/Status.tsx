@@ -100,10 +100,7 @@ const Status: FC<RouteComponentProps & PathPrefixProps> = ({ pathPrefix = '' }) 
   const runtime = useFetch<StatusPageState>(`${path}/status/buildinfo`);
   const build = useFetch<StatusPageState>(`${path}/alertmanagers`);
 
-  let data;
-  if (status.response.data && runtime.response.data && build.response.data) {
-    data = [status.response.data, runtime.response.data, build.response.data];
-  }
+  const data = status.data && runtime.data && build.data ? [status.data, runtime.data, build.data] : [];
 
   return (
     <StatusWithStatusIndicator

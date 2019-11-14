@@ -51,9 +51,8 @@ function createTable(title: string, unit: string, stats: Array<Stats>) {
 }
 
 const TSDBStatus: FC<RouteComponentProps & PathPrefixProps> = ({ pathPrefix }) => {
-  const { response, error } = useFetch<TSDBMap>(`${pathPrefix}/api/v1/status/tsdb`);
+  const { data: stats, error } = useFetch<TSDBMap>(`${pathPrefix}/api/v1/status/tsdb`);
   const headStats = () => {
-    const stats = response && response.data;
     if (error) {
       return (
         <Alert color="danger">
