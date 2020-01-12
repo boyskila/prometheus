@@ -19,10 +19,7 @@ export interface TargetLabels {
   isDropped: boolean;
 }
 
-export const processSummary = (
-  activeTargets: Target[],
-  droppedTargets: DroppedTarget[]
-) => {
+export const processSummary = (activeTargets: Target[], droppedTargets: DroppedTarget[]) => {
   const targets: Record<string, { active: number; total: number }> = {};
 
   // Get targets of each type along with the total and active end points
@@ -84,7 +81,7 @@ export const processTargets = (activeTargets: Target[], droppedTargets: DroppedT
 export const ServiceDiscoveryContent: FC<ServiceMap> = ({ activeTargets, droppedTargets }) => {
   const targets = processSummary(activeTargets, droppedTargets);
   const labels = processTargets(activeTargets, droppedTargets);
-  
+
   return (
     <>
       <h2>Service Discovery</h2>
