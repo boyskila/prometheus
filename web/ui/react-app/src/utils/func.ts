@@ -4,6 +4,11 @@ export const generateID = () => {
     .substr(2, 9)}`;
 };
 
+export const mapEntries = <T, key extends keyof T, Z>(
+  o: T,
+  cb: ([k, v]: [string, T[key]], i: number, arr: [string, T[key]][]) => Z
+) => Object.entries(o).map(cb);
+
 export const byEmptyString = (p: string) => p.length > 0;
 
 export const isPresent = <T>(obj: T): obj is NonNullable<T> => obj !== null && obj !== undefined;
