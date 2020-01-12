@@ -5,7 +5,7 @@ import { useFetch } from '../utils/useFetch';
 import { LabelsTable } from './LabelsTable';
 import { Target, Labels, DroppedTarget } from './targets/target';
 import { withStatusIndicator } from '../withStatusIndicator';
-import { mapEntries } from '../utils/func';
+import { mapObjEntries } from '../utils/func';
 
 // TODO: Deduplicate with https://github.com/prometheus/prometheus/blob/213a8fe89a7308e73f22888a963cbf9375217cd6/web/ui/react-app/src/pages/targets/ScrapePoolList.tsx#L11-L14
 interface ServiceMap {
@@ -86,7 +86,7 @@ export const ServiceDiscoveryContent: FC<ServiceMap> = ({ activeTargets, dropped
     <>
       <h2>Service Discovery</h2>
       <ul>
-        {mapEntries(targets, ([k, v]) => (
+        {mapObjEntries(targets, ([k, v]) => (
           <li key={k}>
             <a href={'#' + k}>
               {k} ({v.active} / {v.total} active targets)
@@ -95,7 +95,7 @@ export const ServiceDiscoveryContent: FC<ServiceMap> = ({ activeTargets, dropped
         ))}
       </ul>
       <hr />
-      {mapEntries(labels, ([k, v]) => {
+      {mapObjEntries(labels, ([k, v]) => {
         return <LabelsTable value={v} name={k} key={k} />;
       })}
     </>

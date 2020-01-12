@@ -4,7 +4,7 @@ export const generateID = () => {
     .substr(2, 9)}`;
 };
 
-export const mapEntries = <T, key extends keyof T, Z>(
+export const mapObjEntries = <T, key extends keyof T, Z>(
   o: T,
   cb: ([k, v]: [string, T[key]], i: number, arr: [string, T[key]][]) => Z
 ) => Object.entries(o).map(cb);
