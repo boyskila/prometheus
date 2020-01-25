@@ -18,6 +18,7 @@ import { setLocalStorageItem, getLocalStorageItem } from './components/LocalStor
 
 const Navigation: FC<PathPrefixProps> = ({ pathPrefix }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [checkboxesOpen, setCheckboxesOpen] = useState(window.location.pathname === `${pathPrefix}/new/graph`);
   const toggle = () => setIsOpen(!isOpen);
   return (
     <Navbar className="mb-3" dark color="dark" expand="md" fixed="top">
@@ -26,7 +27,13 @@ const Navigation: FC<PathPrefixProps> = ({ pathPrefix }) => {
         Prometheus
       </Link>
       <Collapse isOpen={isOpen} navbar style={{ justifyContent: 'space-between' }}>
-        <Nav className="ml-0" navbar>
+        <Nav className="ml-0" navbar onClick={() => {
+          const { pathname } = window.location
+          if (pathname !== `${pathPrefix}/new/graph` && !checkboxesOpen) {
+            return
+          }
+          setCheckboxesOpen(pathname === `${pathPrefix}/new/graph`)
+        }}>
           <NavItem>
             <NavLink tag={Link} to={`${pathPrefix}/new/alerts`}>
               Alerts
@@ -72,22 +79,24 @@ const Navigation: FC<PathPrefixProps> = ({ pathPrefix }) => {
             <NavLink href={`${pathPrefix}/`}>Classic UI</NavLink>
           </NavItem>
         </Nav>
-        <Checkbox
-          id="query-history-checkbox"
-          wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
-          onChange={e => setLocalStorageItem('enable-query-history', e.target.checked, true)}
-          defaultChecked={getLocalStorageItem<boolean>('enable-query-history', 'false')}
-        >
-          Enable query history
-        </Checkbox>
-        <Checkbox
-          id="use-local-time-checkbox"
-          wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
-          onChange={e => setLocalStorageItem('use-local-time', e.target.checked, true)}
-          defaultChecked={getLocalStorageItem<boolean>('use-local-time', 'false')}
-        >
-          Use local time
-        </Checkbox>
+        {checkboxesOpen && <>
+          <Checkbox
+            id="query-history-checkbox"
+            wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
+            onChange={e => setLocalStorageItem('enable-query-history', e.target.checked, true)}
+            defaultChecked={getLocalStorageItem<boolean>('enable-query-history', 'false')}
+          >
+            Enable query history
+          </Checkbox>
+          <Checkbox
+            id="use-local-time-checkbox"
+            wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
+            onChange={e => setLocalStorageItem('use-local-time', e.target.checked, true)}
+            defaultChecked={getLocalStorageItem<boolean>('use-local-time', 'false')}
+          >
+            Use local time
+          </Checkbox>
+        </>}
       </Collapse>
     </Navbar>
   );
