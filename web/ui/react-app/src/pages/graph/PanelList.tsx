@@ -1,23 +1,20 @@
-import React, { Component, ChangeEvent } from 'react';
+import React, { Component } from 'react';
 import { RouteComponentProps } from '@reach/router';
 
 import { Alert, Button, Col, Row } from 'reactstrap';
 
 import Panel, { PanelOptions, PanelDefaultOptions } from './Panel';
-import Checkbox from '../../components/Checkbox';
 import PathPrefixProps from '../../types/PathPrefixProps';
 import { generateID, decodePanelOptionsFromQueryString, encodePanelOptionsToQueryString } from '../../utils';
+import LocalStorageListener, { setLocalStorageItem, getLocalStorageItem } from '../../components/LocalStorageHelpers';
 
-export type MetricGroup = { title: string; items: string[] };
 export type PanelMeta = { key: string; options: PanelOptions; id: string };
 
 interface PanelListState {
   panels: PanelMeta[];
-  pastQueries: string[];
   metricNames: string[];
   fetchMetricsError: string | null;
   timeDriftError: string | null;
-  useLocalTime: boolean;
 }
 
 class PanelList extends Component<RouteComponentProps & PathPrefixProps, PanelListState> {
@@ -26,11 +23,9 @@ class PanelList extends Component<RouteComponentProps & PathPrefixProps, PanelLi
 
     this.state = {
       panels: decodePanelOptionsFromQueryString(window.location.search),
-      pastQueries: [],
       metricNames: [],
       fetchMetricsError: null,
       timeDriftError: null,
-      useLocalTime: this.useLocalTime(),
     };
   }
 
@@ -78,46 +73,22 @@ class PanelList extends Component<RouteComponentProps & PathPrefixProps, PanelLi
         this.setState({ panels });
       }
     };
-
-    this.updatePastQueries();
   }
-
-  isHistoryEnabled = () => JSON.parse(localStorage.getItem('enable-query-history') || 'false') as boolean;
-
-  getHistoryItems = () => JSON.parse(localStorage.getItem('history') || '[]') as string[];
-
-  toggleQueryHistory = (e: ChangeEvent<HTMLInputElement>) => {
-    localStorage.setItem('enable-query-history', `${e.target.checked}`);
-    this.updatePastQueries();
-  };
-
-  updatePastQueries = () => {
-    this.setState({
-      pastQueries: this.isHistoryEnabled() ? this.getHistoryItems() : [],
-    });
-  };
-
-  useLocalTime = () => JSON.parse(localStorage.getItem('use-local-time') || 'false') as boolean;
-
-  toggleUseLocalTime = (e: ChangeEvent<HTMLInputElement>) => {
-    localStorage.setItem('use-local-time', `${e.target.checked}`);
-    this.setState({ useLocalTime: e.target.checked });
-  };
 
   handleExecuteQuery = (query: string) => {
     const isSimpleMetric = this.state.metricNames.indexOf(query) !== -1;
     if (isSimpleMetric || !query.length) {
       return;
     }
-    const historyItems = this.getHistoryItems();
+    const historyItems = getLocalStorageItem<string[]>('history', '[]');
+    
     const extendedItems = historyItems.reduce(
       (acc, metric) => {
         return metric === query ? acc : [...acc, metric]; // Prevent adding query twice.
       },
       [query]
-    );
-    localStorage.setItem('history', JSON.stringify(extendedItems.slice(0, 50)));
-    this.updatePastQueries();
+    )
+    setLocalStorageItem('history', extendedItems.slice(0, 50), true)
   };
 
   updateURL() {
@@ -155,28 +126,10 @@ class PanelList extends Component<RouteComponentProps & PathPrefixProps, PanelLi
   };
 
   render() {
-    const { metricNames, pastQueries, timeDriftError, fetchMetricsError, panels } = this.state;
+    const { metricNames, timeDriftError, fetchMetricsError, panels } = this.state;
     const { pathPrefix } = this.props;
     return (
       <>
-        <Row className="mb-2">
-          <Checkbox
-            id="query-history-checkbox"
-            wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
-            onChange={this.toggleQueryHistory}
-            defaultChecked={this.isHistoryEnabled()}
-          >
-            Enable query history
-          </Checkbox>
-          <Checkbox
-            id="use-local-time-checkbox"
-            wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
-            onChange={this.toggleUseLocalTime}
-            defaultChecked={this.useLocalTime()}
-          >
-            Use local time
-          </Checkbox>
-        </Row>
         <Row>
           <Col>
             {timeDriftError && (
@@ -195,19 +148,33 @@ class PanelList extends Component<RouteComponentProps & PathPrefixProps, PanelLi
             )}
           </Col>
         </Row>
-        {panels.map(({ id, options }) => (
-          <Panel
-            onExecuteQuery={this.handleExecuteQuery}
-            key={id}
-            options={options}
-            onOptionsChanged={opts => this.handleOptionsChanged(id, opts)}
-            useLocalTime={this.state.useLocalTime}
-            removePanel={() => this.removePanel(id)}
-            metricNames={metricNames}
-            pastQueries={pastQueries}
-            pathPrefix={pathPrefix}
-          />
-        ))}
+        <LocalStorageListener
+          state={{
+            'enable-query-history': 'false',
+            'use-local-time': 'false',
+            history: '[]'
+          }}
+        >
+          {(storage: any) => {
+            return (
+              <>
+                {panels.map(({ id, options }) => (
+                  <Panel
+                    onExecuteQuery={this.handleExecuteQuery}
+                    key={id}
+                    options={options}
+                    onOptionsChanged={opts => this.handleOptionsChanged(id, opts)}
+                    useLocalTime={storage['use-local-time']}
+                    removePanel={() => this.removePanel(id)}
+                    metricNames={metricNames}
+                    pastQueries={storage['enable-query-history'] ? storage['history'] : []}
+                    pathPrefix={pathPrefix}
+                  />
+                ))}
+              </>
+            )
+          }}
+        </LocalStorageListener>
         <Button color="primary" className="add-panel-btn" onClick={this.addPanel}>
           Add Panel
         </Button>

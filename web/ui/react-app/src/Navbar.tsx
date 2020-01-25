@@ -13,6 +13,8 @@ import {
   DropdownItem,
 } from 'reactstrap';
 import PathPrefixProps from './types/PathPrefixProps';
+import Checkbox from './components/Checkbox';
+import { setLocalStorageItem, getLocalStorageItem } from './components/LocalStorageHelpers';
 
 const Navigation: FC<PathPrefixProps> = ({ pathPrefix }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -70,6 +72,22 @@ const Navigation: FC<PathPrefixProps> = ({ pathPrefix }) => {
             <NavLink href={`${pathPrefix}/`}>Classic UI</NavLink>
           </NavItem>
         </Nav>
+        <Checkbox
+          id="query-history-checkbox"
+          wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
+          onChange={e => setLocalStorageItem('enable-query-history', e.target.checked, true)}
+          defaultChecked={getLocalStorageItem<boolean>('enable-query-history', 'false')}
+        >
+          Enable query history
+        </Checkbox>
+        <Checkbox
+          id="use-local-time-checkbox"
+          wrapperStyles={{ margin: '0 0 0 15px', alignSelf: 'center' }}
+          onChange={e => setLocalStorageItem('use-local-time', e.target.checked, true)}
+          defaultChecked={getLocalStorageItem<boolean>('use-local-time', 'false')}
+        >
+          Use local time
+        </Checkbox>
       </Collapse>
     </Navbar>
   );
